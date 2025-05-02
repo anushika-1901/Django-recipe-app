@@ -1,0 +1,28 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.sqlite3
+
+# Django stuff
+db.sqlite3
+*.log
+
+# Environment variables
+.env
+
+# Media and Static files
+/static/
+/media/
+
+# VSCode settings
+.vscode/
+
+# Python packages
+*.egg-info/
+.eggs/
+dist/
+build/
+*.whl
+
+# macOS
+.DS_Store

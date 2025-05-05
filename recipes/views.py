@@ -1,78 +1,88 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .forms import RecipeForm
+from .forms import RecipeForm,RegisterForm
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from .models import Recipe
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
-from django.contrib.auth.views import LogoutView
-from django.views.generic import TemplateView
-from django.utils.decorators import method_decorator
+
+from .models import Recipe,Favorite 
+
+from django.contrib.auth import login,logout,authenticate
+
 # Create your views here.
 def home(request):
-    return render(request,'home.html')
-
-@login_required
-def recipe_list(request):
     recipes=Recipe.objects.all()
-    return render(request,'recipe_list.html',{'recipes':recipes})
+    favorite_ids=[]
+    if request.user.is_authenticated:
+        favorite_ids=Favorite.objects.filter(user=request.user).values_list('pk',flat=True)
+    return render(request,'home.html',{'recipes':recipes,'favorite_ids':favorite_ids})
 
 @login_required
-def recipe_add(request):
-    form=RecipeForm(request.POST or None,request.FILES or None)
-    if form.is_valid():
-        recipe=form.save(commit=False)
-        recipe.user=recipe.user
-        recipe.save()
-        return redirect('recipe_list')
-    return render(request,'recipe_form.html',{'form':form})
+def my_recipes(request):
+    recipes=Recipe.objects.filter(created_by=request.user)
+    return render(request,'my_recipes.html',{'recipes':recipes})
+
+@login_required
+def create_recipe(request):
+    if request.method=='POST':
+        form=RecipeForm(request.POST,request.FILES)
+        if form.is_valid():
+            recipe=form.save(commit=False)
+            recipe.created_by=request.user
+            recipe.save()
+            return redirect('home')
+    else:
+        form=RecipeForm()
+    return render(request,'create_recipe.html',{'form':form})
 
 
 @login_required
-def recipe_edit(request,pk):
-    recipe=get_object_or_404(Recipe,pk=pk)
+def update_recipe(request,pk):
+    recipe=get_object_or_404(Recipe,pk=pk,created_by=request.user)
     form=RecipeForm(request.POST or None,request.FILES or None,instance=recipe)
     if form.is_valid():
         form.save()
-        return redirect('recipe_list')
-    return render(request,'recipe_form.html',{'form':form})
+        return redirect('my_recipes')
+    return render(request,'create_recipe.html',{'form':form})
 
 @login_required
-def recipe_delete(request,pk):
-    recipe=get_object_or_404(Recipe,pk=pk)
-    if request.method=='POST':
-        recipe.delete()
-        return redirect('recipe_list')
-    return render(request,'recipe_confirm_delete.html',{'recipe':recipe}) 
-
-def register(request):
-    form=UserCreationForm(request.POST or None)
-    if form.is_valid():
-        user=form.save()
-        login(request,user)
-        return redirect('recipe_list')
-    return render(request,'register.html',{'form':form})
+def delete_recipe(request,pk):
+    recipe=get_object_or_404(Recipe,pk=pk,created_by=request.user)
+    recipe.delete()
+    return redirect('my_recipes')
 
 
 
-@method_decorator(login_required,name='dispatch')
-class LogoutConfirmView(TemplateView):
-    template_name='logout_confirm.html'
-
-
-def home(request):
-    print("User :",request.user)
-    print("Is authenticated",request.user.is_authenticated)
-    return render(request,'home.html')
-
-
-@login_required 
+@login_required
 def toggle_favorite(request,pk):
     recipe=get_object_or_404(Recipe,pk=pk)
-    if request.user in recipe.favorites.all():
-        recipe.favorites.remove(request.user)
+    favorite,created=Favorite.objects.get_or_create(user=request.user,recipe=recipe)
+    if not created:
+        favorite.delete()
+    return redirect('home')
+
+@login_required
+def favorite_recipes(request):
+    favorites=Favorite.objects.filter(user=request.user)
+    return render(request,'favorites.html',{'favorites':favorites})
+
+def register(request):
+    if request.method=='POST':
+        form=RegisterForm(request.POST)
+        if form.is_valid():
+            user=form.save()
+            login(request,user)
+            return redirect('home')
     else:
-        recipe.favorites.add(request.user)
-    return redirect('recipe_list')
+        form=RegisterForm()
+    return render(request,'register.html',{'form':form})
+    
+        
+def login_view(request):
+    if request.method=='POST':
+        user=authenticate(request,username=request.POST['username'],password=request.POST['password'])
+        if user:
+            login(request,user)
+            return redirect('my_recipes')
+    return render(request,'login.html')
 
-
+def logout_view(request):
+    logout(request)
+    return redirect('home')

@@ -2,9 +2,13 @@ from . import views
 from django.urls import path
 urlpatterns=[
     path('',views.home,name='home'),
-    path('recipes/',views.recipe_list,name='recipe_list'),
-    path('recipes/add/',views.recipe_add,name='recipe_add'),
-    path('recipes/<int:pk>/edit/',views.recipe_edit,name='recipe_edit'),
-    path('recipes/<int:pk>/delete/',views.recipe_delete,name='recipe_delete'),
-    path('toggle_favorite/<int:pk>/',views.toggle_favorite,name='toggle_favorite')
+    path('my_recipes/',views.my_recipes,name='my_recipes'),
+    path('create_recipe/',views.create_recipe,name='create_recipe'),
+    path('update_recipe/<int:pk>/',views.update_recipe,name='update_recipe'),
+    path('delete_recipe/<int:pk>/',views.delete_recipe,name='delete_recipe'),
+    path('toggle_favorite<int:pk>/',views.toggle_favorite,name='toggle_favorite'),
+    path('favorite_recipes/',views.favorite_recipes,name='favorite_recipes'),
+    path('register/',views.register,name='register'),
+    path('login/',views.login_view,name='login_view'),
+    path('logout/',views.logout_view,name='logout_view')
 ]

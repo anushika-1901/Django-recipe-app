@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block start %}
+
+
+<h2>My Recipes</h2>
+<a href="{% url 'create_recipe' %}" class="btn btn-success mb-3">Add new recipe</a>
+<div class="row">
+    {% for recipe in recipes %}
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <img src="{{recipe.image.url}}" class="card-img-top" style="height:200px; object-fit:cover;">
+            <div class="card-body">
+                <h5>{{recipe.title}}</h5>
+                <p>{{recipe.ingredients|truncatechars:100}}</p>
+                <a href="{% url 'update_recipe' recipe.pk %}" class="btn btn-sm btn-success">Edit</a>
+                <a href="{% url 'delete_recipe' recipe.pk %}" class="btn btn-sm btn-warning">Delete</a>
+                {% if recipe.pk in favorite_ids %}
+                    <a href="{% url 'toggle_favorite' recipe.pk %}" class="btn btn-primary">Unfavorite</a>
+                {% else %}
+                    <a href="{% url 'toggle_favorite' recipe.pk %}" class="btn btn-danger">Favorite</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

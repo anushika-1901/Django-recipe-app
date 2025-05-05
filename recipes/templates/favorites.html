@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block start %}
+
+<h2>Favorite Recipes</h2>
+<div class="row">
+    {% for fav in favorites %}
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <img src="{{fav.recipe.image.url}}" class="card-img-top" style="height:200px; object-fit:cover;">
+            <div class="card-body">
+                <h5>{{fav.recipe.title}}</h5>
+                <p>{{fav.recipe.ingredients|truncatechars:100}}</p>
+                <a href="{% url 'toggle_favorite' fav.recipe.pk %}" class="btn btn-sm btn-primary">Unfavorite</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>You do not have favorite recipes</p>
+    {% endfor %}
+</div>
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
